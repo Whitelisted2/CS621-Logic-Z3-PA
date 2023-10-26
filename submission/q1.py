@@ -34,7 +34,7 @@ def main():
     # requirements (right hand statement)
     rhs = [Int("rhs["+str(i)+"]") for i in range(n)]
     for i in range(n):
-        sol.add(rhs[i]>=-1, rhs[i]<=1)
+        sol.add(rhs[i]>=(-1), rhs[i]<=1)
 
     x = {}
     for i in range(n):
@@ -46,12 +46,13 @@ def main():
     in_flow = [Int("in_flow["+str(i)+"]") for i in range(n)]
     for i in range(n):
         sol.add(out_flow[i] >= 0, out_flow[i] <= 1, in_flow[i] >= 0, in_flow[i] <= 1)
-    # length of path, to be minimized
-    z = Int("z")
+    
+    z = Int("z") # path length to be minimized 
 
     # constraints
     sol.add(z == Sum([d[i][j] * x[i, j] for i in range(n) for j in range(n) if d[i][j] < M]))
 
+    # calculate rhs for each
     for i in range(n):
         if i == start:
             sol.add(rhs[i] == 1)
@@ -60,16 +61,10 @@ def main():
         else:
             sol.add(rhs[i] == 0)
 
-    # outflow constraint
+    # flow constraints
     for i in range(n):
         sol.add(out_flow[i] == Sum([x[i, j] for j in range(n) if d[i][j] < M]))
-
-    # inflow constraint
-    for j in range(n):
-        sol.add(in_flow[j] == Sum([x[i, j] for i in range(n) if d[i][j] < M]))
-
-    # inflow = outflow
-    for i in range(n):
+        sol.add(in_flow[i] == Sum([x[j, i] for j in range(n) if d[j][i] < M]))
         sol.add(out_flow[i] - in_flow[i] == rhs[i])
 
     # solution and search
@@ -77,8 +72,6 @@ def main():
     while sol.check() == sat:
         num_solutions += 1
         mod = sol.model()
-        print()
-        print('Number of steps required: ', mod.eval(z))
         sol.add(z < mod.eval(z))
 
     def check(node1, node2):
@@ -112,7 +105,6 @@ def main():
     i = 0
     while t != end:
         print("step "+str(i)+": A:"+str(nodes[t][0])+" B:"+str(nodes[t][2])+" C:"+str(nodes[t][4]))
-        # print(nodes[t], '->', end=' ')
         for j in range(n):
             if mod.eval(x[t, j]).as_long() == 1:
                 f, t = check(nodes[j-1], nodes[j])
@@ -125,6 +117,7 @@ def main():
                 t = j
                 break
         i+=1
+    print("-------------------------\nMinimum total number of transfers:", i)
     print()
 
 if __name__ == '__main__':
