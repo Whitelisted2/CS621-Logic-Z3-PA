@@ -32,22 +32,22 @@ def color(V, E, k):
             return False
     else:
         # min: 1 color, max: number of vertices
-        mink = 1
-        maxk = len(V)
+        k_min = 1
+        k_max = len(V)
         
         # let's do binary search to find the minimum possible num of colors
         best_model = None
         best_k = 0
-        while mink <= maxk:
+        while k_min <= k_max:
             s.push()                        # keep track
-            k = int((mink + maxk) / 2)      # midpt
+            k = int((k_min + k_max) / 2)      # midpt
             s.add(num_c == k)
-            if s.check() == sat:            # if k is doable, then bring maxk to k-1 (and keep best_k = k)
+            if s.check() == sat:            # if k is doable, then bring k_max to k-1 (and keep best_k = k)
                 best_model = s.model()
                 best_k = k
-                maxk = k-1
+                k_max = k-1
             else:
-                mink = k+1                  # if k is not doable, bring mink to k+1
+                k_min = k+1                  # if k is not doable, bring k_min to k+1
             s.pop()
 
         return best_k, result(best_model)
